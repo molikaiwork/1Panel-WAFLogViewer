@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="https://1panel.hk/img/favicon.png">
+    <title>WAF 记录</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.3/dist/index.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/lib/codemirror.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.3/dist/index.full.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/lib/codemirror.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/mode/javascript/javascript.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/mode/nginx/nginx.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .centered-container {
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+        .el-card {
+            width: 90%;
+            margin-bottom: 20px;
+        }
+        .home-card .header span:before {
+            position: absolute;
+            top: 4px;
+            left: -14px;
+            width: 4px;
+            height: 14px;
+            content: "";
+            background: var(--el-color-primary);
+            border-radius: 10px;
+        }
+        .home-card .header span {
+            position: relative;
+            font-size: 16px;
+            font-weight: 500;
+            margin-left: 18px;
+        }
+        .el-row {
+            margin-bottom: 20px;
+        }
+        .el-row:last-child {
+            margin-bottom: 0;
+        }
+        .el-col {
+            border-radius: 4px;
+            text-align: center;
+        }
+        .el-col span {
+            color: #646a73;
+            font-size: 14px;
+        }
+        .count {
+            margin-top: 10px;
+        }
+        .count span {
+            font-size: 25px;
+            color: #005eeb;
+            font-weight: 500;
+            line-height: 32px;
+        }
+        .host {
+            width: 240px;
+            margin-right: 10px;
+        }
+        .execrule {
+            width: 380px;
+        }
+        .form-container,
+        .block-form-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .block-form-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .select-container,
+        .search-container {
+            display: flex;
+            gap: 10px;
+        }
+        .search-container>.el-button {
+            flex-shrink: 0;
+        }
+        .rounded-input {
+            margin-right: 10px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+        }
+        .pag {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        tbody {
+            font-size: 14px;
+            color: #646a73;
+        }
+        .el-drawer__header {
+            margin-bottom: 0;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        .margin-top {
+            margin-top: 20px;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #b1b3b8;
+            border-radius: 4px;
+            border: 2px solid #ffffff;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: #f5f7fa;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #909399;
+        }
+        ::-webkit-scrollbar-track:hover {
+            background-color: #e4e7ed;
+        }
+        @media (max-width: 992px) {
+            .form-container,
+            .block-form-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .select-container,
+            .search-container {
+                width: 100%;
+            }
+            .search-container>.el-button {
+                margin-top: 10px;
+            }
+        }
+        @media (max-width: 768px) {
+            .host {
+                width: 100%;
+                margin-right: 10px;
+            }
+            .execrule {
+                width: 100%;
+            }
+            .form-container,
+            .block-form-container {
+                padding: 0 10px;
+            }
+            .select-container,
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 5px;
+            }
+            .select-container>.el-select,
+            .search-container>.el-input,
+            .search-container>.el-button {
+                width: 100%;
+            }
+            .search-container>.el-input {
+                margin-right: 0;
+            }
+            .search-container>.el-button {
+                margin-top: 10px;
+            }
+        }
+    </style>
+    <style>
+        .charts-container {
+            display: flex;
+            justify-content: space-evenly;
+            flex-wrap: wrap;
+            padding: 0 20px;
+            margin-top: 10px;
+        }
+
+        .chart {
+            max-width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="centered-container">
+        <!-- 网站统计数据 -->
+        <el-card class="home-card">
+            <div class="header">
+                <span>今日状态</span>
+            </div>
+            <div style="margin-top: 20px;">
+                <el-row :gutter="20">
+                    <el-col :span="6">
+                        <span>请求</span>
+                        <div class="count">
+                            <span>{{ req_count }}</span>
+                        </div>
+                    </el-col>
+                    <el-col :span="6">
+                        <span>拦截</span>
+                        <div class="count">
+                            <span>{{ attack_count }}</span>
+                        </div>
+                    </el-col>
+                    <el-col :span="6">
+                        <span>4xx数量</span>
+                        <div class="count">
+                            <span>{{ count4xx }}</span>
+                        </div>
+                    </el-col>
+                    <el-col :span="6">
+                        <span>5xx数量</span>
+                        <div class="count">
+                            <span>{{ count5xx }}</span>
+                        </div>
+                    </el-col>
+                </el-row>
+            </div>
+        </el-card>
+
+        <!-- 网站历史统计数据图表 -->
+        <el-card class="home-card">
+            <div class="header">
+                <span>访问趋势（7日）</span>
+            </div>
+            <div class="charts-container">
+                <!-- 请求数 -->
+                <canvas ref="reqChart" class="chart" width="290" height="260"></canvas>
+                <!-- 拦截数 -->
+                <canvas ref="attackChart" class="chart" width="290" height="260"></canvas>
+            </div>
+        </el-card>
+
+        <!-- 网站日志列表的搜索 -->
+        <el-card>
+            <div class="form-container">
+                <div class="select-container">
+                    <el-select v-model="website_key" clearable="" placeholder="请选择" @change="handleLogChange"
+                        class="host">
+                        <template #prefix="">
+                            <span>网站</span>
+                        </template>
+                        <el-option v-for="item in siteList" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                    <el-select v-model="execRuleList" multiple="" clearable="" collapse-tags="" placeholder="请选择"
+                        @change="handleLogChange" class="execrule">
+                        <template #prefix="">
+                            <span>命中规则</span>
+                        </template>
+                        <el-option v-for="item in execRuleOptions" :key="item.value" :label="item.label"
+                            :value="item.value" />
+                    </el-select>
+                </div>
+                <div class="search-container">
+                    <el-input v-model="searchUrl" class="rounded-input" placeholder="请输入URL，支持模糊搜索"
+                        clearable=""></el-input>
+                    <el-input v-model="searchLogIP" class="rounded-input" placeholder="请输入 IP" clearable=""></el-input>
+                    <el-button type="primary" plain="" @click="handleLogChange">
+                        搜索
+                    </el-button>
+                </div>
+            </div>
+        </el-card>
+        <!-- 网站日志列表 -->
+        <el-card>
+            <div class="card-header">
+                <span style="font-weight: bold;">拦截记录
+                    <el-divider direction="vertical" />
+                </span>
+                <el-button type="primary" plain="" @click="clearlogList">
+                    清空日志
+                </el-button>
+                <div style="margin-left: auto;">
+                    <el-button type="primary" plain="" @click="logListData(true)">
+                        刷新
+                    </el-button>
+                </div>
+            </div>
+            <el-table :data="logTableData" style="margin-top: 20px; width: 100%;">
+                <el-table-column prop="ip" label="IP" min-width="130"></el-table-column>
+                <el-table-column prop="host" label="域名" min-width="250"></el-table-column>
+                <el-table-column prop="uri" label="URL" :show-overflow-tooltip="true" min-width="300"></el-table-column>
+                <el-table-column prop="ipLocation" label="IP 归属地" width="150">
+                    <template #default="scope">
+                        {{ scope.row.ip_country_zh }} {{ scope.row.ip_province_zh }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="action" label="动作" min-width="150">
+                    <template #default="scope">
+                        <el-tag v-if="scope.row.action === 'deny'" type="danger">
+                            禁止
+                        </el-tag>
+                        <el-tag v-else="" type="success">
+                            允许
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="exec_rule" label="命中规则" min-width="150"></el-table-column>
+                <el-table-column prop="rule_type" label="类型" min-width="100"></el-table-column>
+                <el-table-column prop="localtime" label="时间" min-width="180">
+                </el-table-column>
+                <el-table-column fixed="right" label="操作" width="100">
+                    <template #default="scope">
+                        <el-button style="color: #005eeb;" link="" @click="handleLogClick(scope.row)">
+                            详情
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pag">
+                <el-pagination v-if="!smallPagination" :page-sizes="[5, 10, 20, 50, 100]" size="default"
+                    layout="total, sizes, prev, pager, next, jumper" :total="logTotal"
+                    @size-change="handleLogSizeChange" @current-change="handleLogCurrentChange">
+                </el-pagination>
+                <el-pagination v-else size="small" background layout="prev, pager, next" :total="logTotal" class="mt-4"
+                    @size-change="handleLogSizeChange" @current-change="handleLogCurrentChange" />
+            </div>
+        </el-card>
+
+        <!-- 网站黑名单列表的搜索 -->
+        <el-card>
+            <div class="block-form-container">
+                <div class="search-container">
+                    <el-input v-model="searchBlockIP" class="rounded-input" placeholder="请输入 IP"
+                        clearable=""></el-input>
+                    <el-button type="primary" plain="" @click="handleBlockChange">
+                        搜索
+                    </el-button>
+                </div>
+            </div>
+        </el-card>
+        <!-- 网站黑名单列表 -->
+        <el-card>
+            <div class="card-header">
+                <span style="font-weight: bold;">封锁记录
+                    <el-divider direction="vertical" />
+                </span>
+                <el-button type="primary" plain="" @click="clearBlockList">
+                    清空日志
+                </el-button>
+                <div style="margin-left: auto;">
+                    <el-button type="primary" plain="" @click="blockListData(true)">
+                        刷新
+                    </el-button>
+                </div>
+            </div>
+            <el-table :data="tableBlockData" style="margin-top: 20px; width: 100%;">
+                <el-table-column prop="ip" label="IP" min-width="155"></el-table-column>
+
+                <el-table-column prop="create_date" label="时间" min-width="150"></el-table-column>
+
+                <el-table-column prop="action" label="状态" min-width="150">
+                    <template #default="scope">
+                        <el-tag :type="getBlockStatus(scope.row).type">
+                            {{ getBlockStatus(scope.row).text }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+
+                <el-table-column prop="blocking_time" label="封禁时间" min-width="151" :formatter="formatBlockingTime">
+                </el-table-column>
+
+                <el-table-column prop="ipLocation" label="IP 归属地" width="150">
+                    <template #default="scope">
+                        {{ scope.row.reqLog?.ip_country_zh }} {{ scope.row.reqLog?.ip_province_zh }}
+                    </template>
+                </el-table-column>
+
+                <el-table-column label="命中规则" min-width="150">
+                    <template #default="scope">
+                        {{ scope.row.reqLog?.exec_rule}}
+                    </template>
+                </el-table-column>
+
+                <el-table-column fixed="right" label="操作" width="100">
+                    <template #default="scope">
+                        <el-button style="color: #005eeb;" link="" @click="handleBlockClick(scope.row)">
+                            详情
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pag">
+                <el-pagination v-if="!smallPagination" :page-sizes="[5, 10, 20, 50, 100]" size="default"
+                    layout="total, sizes, prev, pager, next, jumper" :total="blockTotal"
+                    @size-change="handleBlockSizeChange" @current-change="handleBlockCurrentChange">
+                </el-pagination>
+                <el-pagination v-else size="small" background layout="prev, pager, next" :total="blockTotal"
+                    class="mt-4" @size-change="handleBlockSizeChange" @current-change="handleBlockCurrentChange" />
+            </div>
+        </el-card>
+
+        <!-- 日志列表的抽屉 -->
+        <el-drawer v-model="logDrawer" :size="drawerSize" @close="handleLogDrawerClose">
+            <template #header>
+                <el-page-header @back="logDrawer = false" title="返回">
+                    <template #content>
+                        <span class="text-large font-600 mr-3"> 详情 </span>
+                    </template>
+                </el-page-header>
+            </template>
+            <template #default>
+                <div>
+                    <el-descriptions title="攻击详情" :column="1" border>
+                        <el-descriptions-item label="攻击 IP">
+                            {{ selectedLogRow?.ip || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="请求方式">
+                            {{ selectedLogRow?.method || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="IP 归属地">
+                            {{ selectedLogRow?.ip_country_zh || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="时间">
+                            {{ selectedLogRow?.localtime || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="动作">
+                            {{ selectedLogRow?.action ? (selectedLogRow.action === 'deny' ? '禁止' : '允许') : 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="命中规则">
+                            {{ selectedLogRow?.exec_rule || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="类型">
+                            {{ selectedLogRow?.rule_type || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="匹配值">
+                            {{ selectedLogRow?.match_value ? decodeBase64(selectedLogRow?.match_value) : 'Null' }}
+                        </el-descriptions-item>
+                    </el-descriptions>
+                    <el-descriptions class="margin-top" title="HTTP"></el-descriptions>
+                    <textarea id="nginx-log-editor"></textarea>
+                </div>
+            </template>
+        </el-drawer>
+
+        <!-- 黑名单列表的抽屉 -->
+        <el-drawer v-model="blockdDrawer" :size="drawerSize" @close="handleBlockDrawerClose">
+            <template #header>
+                <el-page-header @back="blockdDrawer = false" title="返回">
+                    <template #content>
+                        <span class="text-large font-600 mr-3"> 详情 </span>
+                    </template>
+                </el-page-header>
+            </template>
+            <template #default>
+                <div>
+                    <el-descriptions title="攻击详情" :column="1" border>
+                        <el-descriptions-item label="攻击 IP">
+                            {{ selectedBlockRow?.reqLog?.ip || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="请求方式">
+                            {{ selectedBlockRow?.reqLog?.method || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="IP 归属地">
+                            {{ selectedBlockRow?.reqLog?.ip_country_zh || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="时间">
+                            {{ selectedBlockRow?.reqLog?.localtime || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="动作">
+                            {{ selectedBlockRow?.action ? (selectedBlockRow.action === 'deny' ? '禁止' : '允许') : 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="命中规则">
+                            {{ selectedBlockRow?.reqLog?.exec_rule || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="类型">
+                            {{ selectedBlockRow?.reqLog?.rule_type || 'Null' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="匹配值">
+                            {{ selectedBlockRow?.reqLog?.match_value ? decodeBase64(selectedBlockRow.reqLog.match_value) : 'Null' }}
+                        </el-descriptions-item>
+                    </el-descriptions>
+                    <el-descriptions class="margin-top" title="HTTP"></el-descriptions>
+                    <textarea id="block-nginx-log-editor"></textarea>
+                </div>
+            </template>
+        </el-drawer>
+    </div>
+
+    <script type="629067d65689cbcc1e5c4668-text/javascript">
+        // 引入 ElementPlus 的相关组件
+        const { ElMessageBox, ElMessage } = ElementPlus;
+
+        // API 基础 URL
+        const API_BASE_URL = '/api.php';
+
+        // Vue 应用的根组件
+        const App = {
+            data() {
+                return {
+                    total_req_count: 0, // 总请求数
+                    total_attack_count: 0, // 总拦截数
+
+                    // 统计信息
+                    req_count: 0,      // 请求次数
+                    attack_count: 0,   // 拦截次数
+                    count4xx: 0,       // 4xx 错误次数
+                    count5xx: 0,       // 5xx 错误次数
+
+                    wafDays: [], // 存储近日数据
+
+                    // 搜索信息
+                    website_key: '',   // 当前选择的站点 key
+                    execRuleList: [],  // 当前选择的执行规则列表
+                    searchUrl: '',     // 搜索的日志 URL
+                    searchLogIP: '',      // 搜索的日志 IP 地址
+                    searchBlockIP: '',      // 搜索的黑名单 IP 地址
+
+                    // 分页信息
+                    currentLogPage: 1,    // 日志当前页
+                    currentBlockPage: 1,    // 黑名单当前页
+                    logPageSize: 10,      // 每页显示的日志条目数
+                    blockPageSize: 10,      // 每页显示的黑名单条目数
+                    logTotal: 0,          // 日志总条目数
+                    blockTotal: 0,          // 黑名单总条目数
+                    siteList: [],      // 站点列表
+
+                    // 弹窗相关状态
+                    logDrawer: false,     // 是否显示日志侧边抽屉
+                    blockdDrawer: false,     // 是否显示黑名单侧边抽屉
+
+                    smallPagination: false,  // 是否启用小的分页栏
+
+                    // 选中的日志行数据
+                    selectedLogRow: {},
+                    // 选中的黑名单行数据
+                    selectedBlockRow: {},
+
+                    // 可执行规则筛选日志的选项
+                    execRuleOptions: [
+                        { value: 'uaBlack', label: 'User-Agent 黑名单' },
+                        { value: 'urlBlockList', label: 'URL 黑名单' },
+                        { value: 'ipBlack', label: 'IP 黑名单' },
+                        { value: 'unknownWebsite', label: '未授权域名访问' },
+                        { value: 'geoRestrict', label: '地区访问限制' },
+                        { value: 'attackCount', label: '攻击频率限制' },
+                        { value: 'notFoundCount', label: '404 频率限制' },
+                        { value: 'cc', label: '访问频率限制' },
+                        { value: 'cookie', label: 'Cookie 规则' },
+                        { value: 'header', label: 'Header 规则' },
+                        { value: 'defaultUaBlack', label: 'User-Agent 规则' },
+                        { value: 'args', label: '参数规则' },
+                        { value: 'methodWhite', label: 'HTTP 规则' },
+                        { value: 'defaultUrlBlack', label: 'URL 规则' },
+                        { value: 'sql', label: 'SQL 注入' },
+                        { value: 'xss', label: 'XSS' },
+                        { value: 'defaultIpBlack', label: '恶意 IP 组' },
+                        { value: 'captcha', label: '人机验证' },
+                        { value: 'fiveSeconds', label: '5 秒验证' },
+                        { value: 'fileExtCheck', label: '文件上传限制' },
+                        { value: 'acl', label: 'ACL' },
+                    ],
+
+                    logTableData: [],  // 日志表格数据显示的列表
+                    tableBlockData: [],  // 黑名单表格数据显示的列表
+
+                    logEditor: null,   // 日志 CodeMirror 编辑器实例
+                    blockEditor: null,   // 黑名单 CodeMirror 编辑器实例
+
+                    drawerSize: '40%', // 侧边抽屉默认宽度
+                };
+            },
+            methods: {
+                // 格式化封禁时间
+                formatBlockingTime(row, column, cellValue) {
+                    if (!cellValue) return '0秒';
+
+                    const seconds = cellValue;
+                    let result = '';
+
+                    // 计算年
+                    const years = Math.floor(seconds / 31536000);
+                    if (years > 0) {
+                        result += `${years}年`;
+                    }
+
+                    // 剩余秒数
+                    let remainingSeconds = seconds % 31536000;
+
+                    // 计算月
+                    const months = Math.floor(remainingSeconds / 2592000);
+                    if (months > 0) {
+                        result += `${months}月`;
+                    }
+                    remainingSeconds %= 2592000;
+
+                    // 计算天
+                    const days = Math.floor(remainingSeconds / 86400);
+                    if (days > 0) {
+                        result += `${days}天`;
+                    }
+                    remainingSeconds %= 86400;
+
+                    // 计算小时
+                    const hours = Math.floor(remainingSeconds / 3600);
+                    if (hours > 0) {
+                        result += `${hours}小时`;
+                    }
+                    remainingSeconds %= 3600;
+
+                    // 计算分钟
+                    const minutes = Math.floor(remainingSeconds / 60);
+                    if (minutes > 0) {
+                        result += `${minutes}分钟`;
+                    }
+                    remainingSeconds %= 60;
+
+                    // 最后是秒
+                    if (remainingSeconds > 0 || result === '') {
+                        result += `${remainingSeconds}秒`;
+                    }
+
+                    return result.trim();
+                },
+
+                // 获取黑名单封禁状态
+                getBlockStatus(row) {
+                    // 转换 create_date 为 ISO 8601 格式
+                    let createDateString = row.create_date.replace(" ", "T") + "Z";
+
+                    // 将封禁开始时间转换为 UTC 时间戳
+                    const createDateUTC = new Date(createDateString).getTime();
+
+                    // 封禁时间 (毫秒)
+                    const blockingTimeSeconds = row.blocking_time * 1000;
+
+                    // 计算封禁结束时的 UTC 时间戳
+                    const blockEndUTC = createDateUTC + blockingTimeSeconds;
+
+                    // 获取当前 UTC 时间戳
+                    const currentUTC = Date.now();
+
+                    // 判断是否已解封
+                    const isUnblocked = row.is_block === '0' || currentUTC >= blockEndUTC;
+
+                    return {
+                        type: isUnblocked ? 'success' : 'danger',
+                        text: isUnblocked ? '已解封' : '封禁中',
+                    };
+                },
+
+                // 获取网站统计数据
+                async fetchData() {
+                    try {
+                        // 调用 API 获取网站统计数据
+                        const { data } = await axios.get(API_BASE_URL, {
+                            params: {
+                                action: 'wafstat'
+                            }
+                        });
+                        // 将返回的数据赋值给当前组件的数据
+                        Object.assign(this, {
+                            req_count: data.req_count,
+                            attack_count: data.attack_count,
+                            count4xx: data.count4xx,
+                            count5xx: data.count5xx,
+                        });
+                    } catch (error) {
+                        console.error("API 请求失败:", error);
+                    }
+                },
+
+                // 获取网站历史统计数据
+                async fetchDaysData() {
+                    try {
+                        // 调用 API 获取网站统计数据
+                        const { data } = await axios.get(API_BASE_URL, {
+                            params: {
+                                action: 'wafdays'
+                            }
+                        });
+
+                        // 将返回的数据赋值给当前组件的数据
+                        Object.assign(this, {
+                            // 保存每天的统计数据
+                            wafDays: data.data.map(item => ({
+                                oldDay: item.day,
+                                req_count: item.req_count,
+                                attack_count: item.attack_count
+                            })),
+
+                            // 保存总计数据
+                            total_req_count: data.totals.total_req_count,
+                            total_attack_count: data.totals.total_attack_count,
+                        });
+
+                        // 调用更新图表数据函数
+                        this.updateChartData();
+                    } catch (error) {
+                        console.error("API 请求失败:", error);
+                    }
+                },
+
+                // 更新图表数据并重新渲染图表
+                updateChartData() {
+                    // 检查 wafDays 是否为空，若为空则不更新图表
+                    if (!this.wafDays || this.wafDays.length === 0) {
+                        console.warn("没有可用的数据来更新图表");
+                        return;
+                    }
+
+                    const labels = this.wafDays.map(item => item.oldDay); // X 轴日期
+                    const reqCounts = this.wafDays.map(item => item.req_count); // 请求数
+                    const attackCounts = this.wafDays.map(item => item.attack_count); // 拦截数
+
+                    // 获取两个 canvas 元素的引用
+                    const reqChartElement = this.$refs.reqChart; // 请求数图表的 ref 引用
+                    const attackChartElement = this.$refs.attackChart; // 拦截数图表的 ref 引用
+
+                    // 如果 reqChartElement 和 window.reqChartInstance 存在，销毁旧请求数图表实例
+                    if (reqChartElement && window.reqChartInstance) {
+                        window.reqChartInstance.destroy();
+                        window.reqChartInstance = null;  // 清空图表实例的引用
+                    }
+
+                    // 如果 attackChartElement 和 window.attackChartInstance 存在，销毁旧拦截数图表实例
+                    if (attackChartElement && window.attackChartInstance) {
+                        window.attackChartInstance.destroy();
+                        window.attackChartInstance = null;  // 清空图表实例的引用
+                    }
+
+                    // 创建新的请求数图表实例
+                    window.reqChartInstance = new Chart(reqChartElement, {
+                        type: 'bar',
+                        data: {
+                            labels: labels, // 日期作为 X 轴
+                            datasets: [
+                                {
+                                    label: '请求',
+                                    data: reqCounts, // 请求数作为 Y 轴数据
+                                    backgroundColor: 'rgba(54, 162, 235, 0.6)', // 请求数柱形图颜色
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: false,
+                            aspectRatio: null,
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: false,
+                                        text: '日期',
+                                    },
+                                },
+                                y: {
+                                    title: {
+                                        display: false,
+                                        text: '数量',
+                                    },
+                                    beginAtZero: true,
+                                },
+                            },
+                        },
+                    });
+
+                    // 创建新的拦截数图表实例
+                    window.attackChartInstance = new Chart(attackChartElement, {
+                        type: 'bar',
+                        data: {
+                            labels: labels, // 日期作为 X 轴
+                            datasets: [
+                                {
+                                    label: '拦截',
+                                    data: attackCounts, // 拦截数作为 Y 轴数据
+                                    backgroundColor: 'rgba(255, 69, 58, 0.6)', // 拦截数柱形图颜色
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: false,
+                            aspectRatio: null,
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: false,
+                                        text: '日期',
+                                    },
+                                },
+                                y: {
+                                    title: {
+                                        display: false,
+                                        text: '数量',
+                                    },
+                                    beginAtZero: true,
+                                },
+                            },
+                        },
+                    });
+                },
+
+                // 获取站点列表数据
+                async siteListData() {
+                    try {
+                        // 调用 API 获取站点列表数据
+                        const { data } = await axios.get(API_BASE_URL, {
+                            params: {
+                                action: 'sitelist'
+                            }
+                        });
+                        // 将站点列表数据映射成 value 和 label 结构
+                        this.siteList = data.map(item => ({
+                            value: item.website_key,
+                            label: item.website_key,
+                        }));
+                    } catch (error) {
+                        console.error("API 请求失败:", error);
+                    }
+                },
+
+                // 获取日志数据
+                async logListData(refresh) {
+                    try {
+                        // 调用 API 获取日志数据
+                        const { data } = await axios.get(API_BASE_URL, {
+                            params: {
+                                action: 'log',
+                                page: this.currentLogPage,
+                                size: this.logPageSize,
+                                website_key: this.website_key,
+                                uri: this.searchUrl,
+                                ip: this.searchLogIP,
+                                exec_rule: this.execRuleList
+                            }
+                        });
+                        // 如果是刷新操作，显示刷新成功提示
+                        if (!!refresh) { // !! 表示将值转换为布尔值
+                            ElMessage({ message: '刷新成功', type: 'success' });
+                        };
+                        // 更新分页总数和表格数据
+                        this.logTotal = data.total;
+                        this.logTableData = data.data;
+                    } catch (error) {
+                        console.error("API 请求失败:", error);
+                    }
+                },
+
+                // 获取黑名单数据
+                async blockListData(refresh) {
+                    try {
+                        // 调用 API 获取黑名单数据
+                        const { data } = await axios.get(API_BASE_URL, {
+                            params: {
+                                action: 'block',
+                                page: this.currentBlockPage,
+                                size: this.blockPageSize,
+                                ip: this.searchBlockIP
+                            }
+                        });
+                        // 如果是刷新操作，显示刷新成功提示
+                        if (!!refresh) { // !! 表示将值转换为布尔值
+                            ElMessage({ message: '刷新成功', type: 'success' });
+                        };
+                        // 更新分页总数和表格数据
+                        this.blockTotal = data.total;
+                        this.tableBlockData = data.data;
+                    } catch (error) {
+                        console.error("API 请求失败:", error);
+                    }
+                },
+
+                // 清空日志
+                async clearlogList() {
+                    try {
+                        // 弹出确认框提示是否清空日志
+                        await ElMessageBox.confirm('清空日志将无法恢复，是否继续？', '清空日志', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                        });
+
+                        // 调用 API 清空日志
+                        const { data } = await axios.get(API_BASE_URL, { params: { action: 'clearlogs' } });
+                        // 清空日志成功
+                        if (data.status === 1) {
+                            ElMessage({ message: '日志清空成功', type: 'success' });
+                            this.logListData(); // 刷新日志列表
+                        } else {
+                            ElMessage({ message: '日志清空失败', type: 'danger' });
+                        }
+                    } catch (error) {
+                        // 处理取消清空日志的情况
+                        if (error === 'cancel') {
+                            ElMessage({ message: '清空日志已取消', type: 'info' });
+                        } else {
+                            console.error("API 请求失败:", error);
+                        }
+                    }
+                },
+
+                // 清空黑名单
+                async clearBlockList() {
+                    try {
+                        // 弹出确认框提示是否清空日志
+                        await ElMessageBox.confirm('清空日志将无法恢复，是否继续？', '清空日志', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                        });
+
+                        // 调用 API 清空日志
+                        const { data } = await axios.get(API_BASE_URL, { params: { action: 'clearBlocklogs' } });
+                        // 清空日志成功
+                        if (data.status === 1) {
+                            ElMessage({ message: '日志清空成功', type: 'success' });
+                            this.blockListData(); // 刷新日志列表
+                        } else {
+                            ElMessage({ message: '日志清空失败', type: 'danger' });
+                        }
+                    } catch (error) {
+                        // 处理取消清空日志的情况
+                        if (error === 'cancel') {
+                            ElMessage({ message: '清空日志已取消', type: 'info' });
+                        } else {
+                            console.error("API 请求失败:", error);
+                        }
+                    }
+                },
+
+                // 点击表格行时的处理
+                handleLogClick(row) {
+                    this.selectedLogRow = row;
+                    this.logDrawer = true; // 打开抽屉
+                    if (this.logEditor) {
+                        this.logEditor.toTextArea(); // 关闭已打开的日志的编辑器
+                    }
+                    this.$nextTick(this.initializeLogCodeMirror); // 初始化日志的 CodeMirror 编辑器
+                },
+
+                // 点击黑名单表格行时的处理
+                handleBlockClick(row) {
+                    this.selectedBlockRow = row;
+                    this.blockdDrawer = true; // 打开抽屉
+                    if (this.blockEditor) {
+                        this.blockEditor.toTextArea(); // 关闭已打开的黑名单的编辑器
+                    }
+                    this.$nextTick(this.initializeBlockCodeMirror); // 初始化黑名单的 CodeMirror 编辑器
+                },
+
+                // 日志搜索条件改变时的处理
+                handleLogChange() {
+                    this.logListData(); // 重新获取日志数据
+                },
+
+                // 黑名单搜索条件改变时的处理
+                handleBlockChange() {
+                    this.blockListData(); // 重新获取黑名单数据
+                },
+
+                // 改变每页显示的日志条目数
+                handleLogSizeChange(size) {
+                    this.logPageSize = size;
+                    this.logListData(); // 重新获取数据
+                },
+
+                // 改变每页显示的黑名单条目数
+                handleBlockSizeChange(size) {
+                    this.blockPageSize = size;
+                    this.blockListData(); // 重新获取数据
+                },
+
+                // 改变日志当前页
+                handleLogCurrentChange(page) {
+                    this.currentLogPage = page;
+                    this.logListData(); // 重新获取数据
+                },
+
+                // 改变黑名单当前页
+                handleBlockCurrentChange(page) {
+                    this.currentBlockPage = page;
+                    this.blockListData(); // 重新获取数据
+                },
+
+                // 初始化日志 CodeMirror 编辑器
+                initializeLogCodeMirror() {
+                    const editorElement = document.getElementById('nginx-log-editor');
+                    this.logEditor = CodeMirror.fromTextArea(editorElement, {
+                        lineNumbers: true,  // 显示行号
+                        mode: 'nginx',      // 设置模式为 nginx 日志
+                        readOnly: true,     // 设置为只读模式
+                        theme: 'default',   // 设置主题
+                    });
+                    this.logEditor.setValue(this.selectedLogRow?.nginx_log || '暂无日志数据');  // 设置日志内容
+                },
+
+                // 初始化黑名单 CodeMirror 编辑器
+                initializeBlockCodeMirror() {
+                    const editorBlockElement = document.getElementById('block-nginx-log-editor');
+                    this.blockEditor = CodeMirror.fromTextArea(editorBlockElement, {
+                        lineNumbers: true,  // 显示行号
+                        mode: 'nginx',      // 设置模式为 nginx 日志
+                        readOnly: true,     // 设置为只读模式
+                        theme: 'default',   // 设置主题
+                    });
+                    this.blockEditor.setValue(this.selectedBlockRow?.reqLog?.nginx_log || '暂无日志数据');  // 设置日志内容
+                },
+
+                // 关闭日志抽屉时的处理
+                handleLogDrawerClose() {
+                    if (this.logEditor) {
+                        setTimeout(() => {
+                            this.logEditor.toTextArea(); // 关闭日志的编辑器
+                        }, 200); // 延迟 0.2 秒
+                    }
+                },
+
+                // 关闭黑名单抽屉时的处理
+                handleBlockDrawerClose() {
+                    if (this.blockEditor) {
+                        setTimeout(() => {
+                            this.blockEditor.toTextArea(); // 关闭黑名单的编辑器
+                        }, 200); // 延迟 0.2 秒
+                    }
+                },
+
+                // 解码 Base64 字符串
+                decodeBase64(encodedString) {
+                    try {
+                        const decodedString = atob(encodedString); // 解码 Base64 字符串
+                        return decodeURIComponent(escape(decodedString)); // 进行 URL 解码
+                    } catch (error) {
+                        console.error('Base64 解码失败:', error);
+                        return null; // 返回空值表示失败
+                    }
+                },
+
+                // 根据窗口大小更新抽屉宽度
+                updateDrawerSize() {
+                    const width = window.innerWidth;
+
+                    if (width > 1200) {
+                        this.drawerSize = '40%';  // 大屏幕设置为 40%
+                    } else if (width > 768) {
+                        this.drawerSize = '60%';  // 中等屏幕设置为 60%
+                    } else {
+                        this.drawerSize = '80%';  // 小屏幕设置为 80%
+                        this.smallPagination = true; // 启用小分页
+                    }
+                },
+            },
+
+            // 组件挂载完成后执行的操作
+            async mounted() {
+                // 调用函数获取数据
+                await Promise.all([this.fetchDaysData(), this.fetchData(), this.siteListData(), this.logListData(), this.blockListData()]);
+                this.updateDrawerSize(); // 初始化抽屉大小
+                window.addEventListener('resize', this.updateDrawerSize); // 监听窗口大小变化
+            },
+
+            // 组件卸载前执行的清理工作
+            beforeUnmount() {
+                window.removeEventListener('resize', this.updateDrawerSize); // 移除窗口大小监听
+            },
+        };
+
+        // 创建 Vue 应用并挂载
+        const app = Vue.createApp(App);
+        app.use(ElementPlus);
+        app.mount("#app");
+    </script>
+</body>
+</html>
