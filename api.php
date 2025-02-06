@@ -184,8 +184,6 @@ switch ($action) {
 
             $wafData['data'] = array_reverse($wafSQL);
 
-            $wafData['period'] = "7";
-
             exit(jsonResponse($wafData));
         } catch (Exception $e) {
             exit(jsonResponse(['error' => 'Error fetching WAF old stats.']));
