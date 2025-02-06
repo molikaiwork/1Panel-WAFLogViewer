@@ -7,14 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.3/dist/index.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/lib/codemirror.css" />
-    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.3/dist/index.full.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/lib/codemirror.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/mode/javascript/javascript.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/mode/nginx/nginx.min.js" type="629067d65689cbcc1e5c4668-text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.3/dist/index.full.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/lib/codemirror.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.5/mode/nginx/nginx.min.js"></script>
     <style>
         body {
             padding: 0;
@@ -501,7 +501,7 @@
         </el-drawer>
     </div>
 
-    <script type="629067d65689cbcc1e5c4668-text/javascript">
+    <script>
         // 引入 ElementPlus 的相关组件
         const { ElMessageBox, ElMessage } = ElementPlus;
 
@@ -512,9 +512,6 @@
         const App = {
             data() {
                 return {
-                    total_req_count: 0, // 总请求数
-                    total_attack_count: 0, // 总拦截数
-
                     // 统计信息
                     req_count: 0,      // 请求次数
                     attack_count: 0,   // 拦截次数
@@ -696,16 +693,12 @@
 
                         // 将返回的数据赋值给当前组件的数据
                         Object.assign(this, {
-                            // 保存每天的统计数据
+                            // 保存近日的统计数据
                             wafDays: data.data.map(item => ({
                                 oldDay: item.day,
                                 req_count: item.req_count,
                                 attack_count: item.attack_count
                             })),
-
-                            // 保存总计数据
-                            total_req_count: data.totals.total_req_count,
-                            total_attack_count: data.totals.total_attack_count,
                         });
 
                         // 调用更新图表数据函数

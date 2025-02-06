@@ -180,21 +180,9 @@ switch ($action) {
                 FROM main.waf_stat
                 ORDER BY id DESC
                 LIMIT 7;
-            ");        
-
-            $totalReqCount = 0;
-            $totalAttackCount = 0;
-
-            foreach ($wafSQL as $row) {
-                $totalReqCount += $row['req_count'];
-                $totalAttackCount += $row['attack_count'];
-            }
+            ");
 
             $wafData['data'] = array_reverse($wafSQL);
-            $wafData['totals'] = [
-                'total_req_count' => "$totalReqCount",
-                'total_attack_count' => "$totalAttackCount"
-            ];
 
             $wafData['period'] = "7";
 
